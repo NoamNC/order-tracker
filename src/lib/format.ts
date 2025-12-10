@@ -5,11 +5,36 @@ export function relativeDayLabel(
 ): string {
 	const date = new Date(isoString);
 
-	const dateDay = new Date(date.getFullYear(), date.getMonth(), date.getDate());
-	const nowDay = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+	// Get date components in the specified timezone
+	const dateFormatter = new Intl.DateTimeFormat("en-US", {
+		timeZone,
+		year: "numeric",
+		month: "2-digit",
+		day: "2-digit",
+	});
+	const nowFormatter = new Intl.DateTimeFormat("en-US", {
+		timeZone,
+		year: "numeric",
+		month: "2-digit",
+		day: "2-digit",
+	});
+
+	const dateParts = dateFormatter.formatToParts(date);
+	const nowParts = nowFormatter.formatToParts(now);
+
+	const dateYear = parseInt(dateParts.find((p) => p.type === "year")!.value);
+	const dateMonth = parseInt(dateParts.find((p) => p.type === "month")!.value);
+	const dateDay = parseInt(dateParts.find((p) => p.type === "day")!.value);
+
+	const nowYear = parseInt(nowParts.find((p) => p.type === "year")!.value);
+	const nowMonth = parseInt(nowParts.find((p) => p.type === "month")!.value);
+	const nowDay = parseInt(nowParts.find((p) => p.type === "day")!.value);
+
+	const dateDayObj = new Date(dateYear, dateMonth - 1, dateDay);
+	const nowDayObj = new Date(nowYear, nowMonth - 1, nowDay);
 
 	const diffDays = Math.round(
-		(dateDay.getTime() - nowDay.getTime()) / (1000 * 60 * 60 * 24),
+		(dateDayObj.getTime() - nowDayObj.getTime()) / (1000 * 60 * 60 * 24),
 	);
 
 	if (diffDays === 0) return "today";
