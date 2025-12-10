@@ -20,6 +20,7 @@ export interface Article {
 	articleImageUrl?: string | null;
 	quantity: number;
 	price: number;
+	productUrl?: string | null;
 }
 
 export interface DeliveryInfo {

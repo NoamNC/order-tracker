@@ -8,9 +8,12 @@ interface ParcelSummaryProps {
 
 export function ParcelSummary({ order }: ParcelSummaryProps) {
 	const articles = order.delivery_info?.articles ?? [];
-	const totalItems = articles.reduce((sum, article) => sum + article.quantity, 0);
+	const totalItems = articles.reduce(
+		(sum, article) => sum + (article.quantity || 0),
+		0,
+	);
 	const totalValue = articles.reduce(
-		(sum, article) => sum + article.price * article.quantity,
+		(sum, article) => sum + (article.price || 0) * (article.quantity || 0),
 		0,
 	);
 
@@ -56,6 +59,32 @@ export function ParcelSummary({ order }: ParcelSummaryProps) {
 							</div>
 						);
 
+						const hasProductLink = Boolean(article.productUrl);
+						const articleName = article.articleName || "Unnamed Product";
+						const articleNo = article.articleNo || "N/A";
+						const quantity = article.quantity || 0;
+
+						const imageContent = article.articleImageUrl ? (
+							<ArticleImage
+								src={article.articleImageUrl}
+								alt={articleName}
+								fallback={placeholder}
+							/>
+						) : (
+							<div className="w-16 h-16 flex-shrink-0">{placeholder}</div>
+						);
+
+						const nameContent = (
+							<>
+								<h4 className="font-medium text-sm leading-tight truncate">
+									{articleName}
+								</h4>
+								<p className="text-xs text-muted-foreground mt-0.5 font-mono">
+									SKU: {articleNo}
+								</p>
+							</>
+						);
+
 						return (
 							// biome-ignore lint/suspicious/noArrayIndexKey: synthetic data without stable ids
 							<div
@@ -63,47 +92,55 @@ export function ParcelSummary({ order }: ParcelSummaryProps) {
 								className="flex gap-3 p-3 rounded-lg border bg-card hover:bg-accent/50 transition-colors"
 							>
 								{/* Article Image */}
-								{article.articleImageUrl ? (
-									<ArticleImage
-										src={article.articleImageUrl}
-										alt={article.articleName}
-										fallback={placeholder}
-									/>
+								{hasProductLink ? (
+									<a
+										href={article.productUrl || undefined}
+										target="_blank"
+										rel="noopener noreferrer"
+										className="flex-shrink-0"
+										aria-label={`View ${articleName} product page`}
+									>
+										{imageContent}
+									</a>
 								) : (
-									<div className="w-16 h-16 flex-shrink-0">{placeholder}</div>
+									imageContent
 								)}
 
-							{/* Article Details */}
-							<div className="flex-1 min-w-0">
-								<div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-2">
-									<div className="flex-1 min-w-0">
-										<h4 className="font-medium text-sm leading-tight truncate">
-											{article.articleName}
-										</h4>
-										{article.articleNo && (
-											<p className="text-xs text-muted-foreground mt-0.5 font-mono">
-												{article.articleNo}
-											</p>
-										)}
-									</div>
-									<div className="flex items-center gap-3 flex-shrink-0">
-										<div className="text-left sm:text-right">
-											{article.price > 0 && (
-												<p className="text-sm font-medium">
-													{new Intl.NumberFormat("en-US", {
-														style: "currency",
-														currency: "USD",
-													}).format(article.price)}
-												</p>
+								{/* Article Details */}
+								<div className="flex-1 min-w-0">
+									<div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-2">
+										<div className="flex-1 min-w-0">
+											{hasProductLink ? (
+												<a
+													href={article.productUrl || undefined}
+													target="_blank"
+													rel="noopener noreferrer"
+													className="block hover:text-primary transition-colors"
+												>
+													{nameContent}
+												</a>
+											) : (
+												nameContent
 											)}
-											<p className="text-xs text-muted-foreground">
-												Qty: {article.quantity}
-											</p>
+										</div>
+										<div className="flex items-center gap-3 flex-shrink-0">
+											<div className="text-left sm:text-right">
+												{article.price > 0 && (
+													<p className="text-sm font-medium">
+														{new Intl.NumberFormat("en-US", {
+															style: "currency",
+															currency: "USD",
+														}).format(article.price)}
+													</p>
+												)}
+												<p className="text-xs text-muted-foreground">
+													Qty: {quantity}
+												</p>
+											</div>
 										</div>
 									</div>
 								</div>
 							</div>
-						</div>
 						);
 					})}
 				</div>
