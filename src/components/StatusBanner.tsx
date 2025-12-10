@@ -19,6 +19,10 @@ function getStatusVariant(
 			return "destructive";
 		case "delayed":
 			return "outline";
+		case "ready_for_collection":
+			return "default";
+		case "scheduled":
+			return "outline";
 		case "out_for_delivery":
 			return "default";
 		default:
