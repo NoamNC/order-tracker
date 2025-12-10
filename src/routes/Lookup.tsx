@@ -89,7 +89,30 @@ export default function Lookup() {
 							disabled={loading}
 							className={cn(loading && "opacity-80")}
 						>
-							{loading ? "Checking…" : "View order"}
+							{loading ? (
+								<>
+									<div className="inline-block animate-spin rounded-full h-4 w-4 border-b-2 border-current mr-2"></div>
+									Checking…
+								</>
+							) : (
+								<>
+									<svg
+										className="w-4 h-4 mr-2"
+										fill="none"
+										stroke="currentColor"
+										viewBox="0 0 24 24"
+										aria-hidden="true"
+									>
+										<path
+											strokeLinecap="round"
+											strokeLinejoin="round"
+											strokeWidth={2}
+											d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"
+										/>
+									</svg>
+									View order
+								</>
+							)}
 						</Button>
 						{error && (
 							<Alert role="alert">
