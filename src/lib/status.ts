@@ -7,6 +7,7 @@ export type ComputedStatus =
 	| { code: "ready_for_collection"; label: "Ready for collection" }
 	| { code: "failed_attempt"; label: "Action required" }
 	| { code: "scheduled"; label: "Delivery scheduled" }
+	| { code: "out_for_delivery"; label: "Out for Delivery" }
 	| { code: "in_transit"; label: "In transit" }
 	| { code: "delayed"; label: "Delayed" };
 
@@ -76,6 +77,15 @@ export function computeStatus(
 
 	if (latestText.includes("delay")) {
 		return { code: "delayed", label: "Delayed" };
+	}
+
+	// Out for delivery should be checked before scheduled/in_transit
+	if (
+		latestText.includes("out for delivery") ||
+		latestText.includes("on the way to you") ||
+		latestText.includes("on its way to recipient")
+	) {
+		return { code: "out_for_delivery", label: "Out for Delivery" };
 	}
 
 	if (
