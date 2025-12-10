@@ -34,8 +34,8 @@ function ArticleImage({ src, alt, fallback }: ArticleImageProps) {
 				onError={() => setError(true)}
 				onLoad={() => {
 					setImageLoaded(true);
-					// Small delay to ensure smooth transition
-					setTimeout(() => setLoading(false), 150);
+					// Delay matches CSS transition duration (duration-300 = 300ms)
+					setTimeout(() => setLoading(false), 300);
 				}}
 			/>
 			{loading && (
