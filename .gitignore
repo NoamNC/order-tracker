@@ -1,0 +1,26 @@
+# Mac
+.DS_Store
+
+# Windows
+Thumbs.db
+
+# Editor
+.idea/
+.vscode
+
+# vi(m)
+*~
+
+# General
+log/
+*.log
+/pnpm-lock.yaml
+/node_modules/
+
+# Playwright
+node_modules/
+/test-results/
+/playwright-report/
+/blob-report/
+/playwright/.cache/
+/playwright/.auth/
