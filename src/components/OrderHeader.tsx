@@ -6,16 +6,24 @@ import { Badge } from "./ui/badge";
 import { Card, CardContent, CardHeader, CardTitle } from "./ui/card";
 import { Separator } from "./ui/separator";
 
-export function OrderHeader({ order, hasZip = true }: { order: Order; hasZip?: boolean }) {
-	const info = order.delivery_info;
-	const tz = order.delivery_info?.timezone ?? "UTC";
-	const updatedLabel = relativeDayLabel(order.updated, tz);
+export function OrderHeader({ 
+	orders, 
+	hasZip = true 
+}: { 
+	orders: Order[]; 
+	hasZip?: boolean;
+}) {
+	// Use first order for shared info
+	const primaryOrder = orders[0];
+	const info = primaryOrder?.delivery_info;
+	const tz = primaryOrder?.delivery_info?.timezone ?? "UTC";
+	const updatedLabel = primaryOrder ? relativeDayLabel(primaryOrder.updated, tz) : "N/A";
 	const status = useMemo(
 		() =>
-			order
-				? computeStatus(order.checkpoints ?? [], order.delivery_info)
+			primaryOrder
+				? computeStatus(primaryOrder.checkpoints ?? [], primaryOrder.delivery_info)
 				: null,
-		[order],
+		[primaryOrder],
 	);
 
 	return (
@@ -40,17 +48,24 @@ export function OrderHeader({ order, hasZip = true }: { order: Order; hasZip?: b
 				<div className="space-y-3">
 					<div>
 						<p className="text-xs font-medium text-muted-foreground mb-1.5 uppercase tracking-wide">
-							Tracking Number
+							{orders.length > 1 ? "Tracking Numbers" : "Tracking Number"}
 						</p>
-						<div className="flex items-center gap-2 flex-wrap justify-center sm:justify-start">
-							<p className="text-base font-mono font-medium">
-								{order.tracking_number ?? "N/A"}
-							</p>
-							{order.courier && (
-								<Badge variant="outline" className="text-xs">
-									{order.courier.toUpperCase()}
-								</Badge>
-							)}
+						<div className="space-y-2">
+							{orders.map((order, index) => (
+								<div
+									key={order._id || `${order.courier}-${order.tracking_number}-${index}`}
+									className="flex items-center gap-2 flex-wrap justify-center sm:justify-start"
+								>
+									<p className="text-base font-mono font-medium">
+										{order.tracking_number ?? "N/A"}
+									</p>
+									{order.courier && (
+										<Badge variant="outline" className="text-xs">
+											{order.courier.toUpperCase()}
+										</Badge>
+									)}
+								</div>
+							))}
 						</div>
 					</div>
 
@@ -86,12 +101,12 @@ export function OrderHeader({ order, hasZip = true }: { order: Order; hasZip?: b
 
 				{/* Additional Info */}
 				<div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-sm">
-					{order.destination_country_iso3 && (
+					{primaryOrder?.destination_country_iso3 && (
 						<div>
 							<p className="text-xs font-medium text-muted-foreground mb-1 uppercase tracking-wide">
 								Destination
 							</p>
-							<p className="font-medium">{order.destination_country_iso3}</p>
+							<p className="font-medium">{primaryOrder.destination_country_iso3}</p>
 						</div>
 					)}
 					<div>
