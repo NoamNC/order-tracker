@@ -75,7 +75,7 @@ export function StatusBanner({ order }: StatusBannerProps) {
 				<div className="flex items-center gap-4 flex-wrap">
 					<Badge 
 						variant={statusVariant} 
-						className="text-lg px-4 py-2 font-semibold"
+						className="text-lg px-4 py-2 font-semibold bg-white dark:bg-gray-900 border-2 border-gray-300 dark:border-gray-700 shadow-sm"
 					>
 						{status.label}
 					</Badge>
