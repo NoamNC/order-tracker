@@ -164,12 +164,12 @@ export function explainStatus(
 			if (latestCheckpoint) {
 				const statusText = normalize(latestCheckpoint.status_details);
 				if (statusText.includes("depot") || statusText.includes("facility")) {
-					explanation = `Your parcel departed ${city ? `from ${city}` : "the local depot"}${timeStr ? ` at ${timeStr}` : ""}${dateLabel !== "today" ? ` ${dateLabel}` : ""} and is out for delivery${expectedDate ? `. Expected delivery ${expectedDate}` : " today"}.`;
+					explanation = `Your parcel departed ${city ? `from ${city}` : "the local depot"}${timeStr ? ` at ${timeStr}` : ""}${dateLabel !== "today" ? ` ${dateLabel}` : ""} and is out for delivery${expectedDate ? `. Expected delivery ${expectedDate}.` : " today."}`;
 				} else {
-					explanation = `Your package is out for delivery${city ? ` from ${city}` : ""}${timeStr ? ` (departed at ${timeStr})` : ""}${expectedDate ? `. Expected delivery ${expectedDate}` : " today"}.`;
+					explanation = `Your package is out for delivery${city ? ` from ${city}` : ""}${timeStr ? ` (departed at ${timeStr})` : ""}${expectedDate ? `. Expected delivery ${expectedDate}.` : " today."}`;
 				}
 			} else {
-				explanation = `Your package is out for delivery${expectedDate ? `. Expected delivery ${expectedDate}` : " today"}.`;
+				explanation = `Your package is out for delivery${expectedDate ? `. Expected delivery ${expectedDate}.` : " today."}`;
 			}
 
 			return {
