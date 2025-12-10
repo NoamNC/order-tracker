@@ -11,20 +11,19 @@ import type { Order } from "@/types/order";
 export default function OrderDetails() {
 	const { id } = useParams();
 	const location = useLocation();
-	const [order, setOrder] = useState<Order | null>(
-		(location.state as any)?.order ?? null,
-	);
+	const locationState = location.state as { order?: Order; hasZip?: boolean } | null;
+	const [order, setOrder] = useState<Order | null>(locationState?.order ?? null);
+	const [hasZip, setHasZip] = useState<boolean>(locationState?.hasZip ?? false);
 	const [error, setError] = useState<string | null>(null);
 	const tz = order?.delivery_info?.timezone ?? "UTC";
 
 	useEffect(() => {
 		async function fetchOrder() {
 			if (order || !id) return;
-			const res = await fetch(
-				`/orders/${encodeURIComponent(id)}?zip=__unknown__`,
-			);
+			// Fetch without ZIP to get basic tracking info
+			const res = await fetch(`/orders/${encodeURIComponent(id)}`);
 			if (!res.ok) {
-				setError("Order not preloaded. Please go through Lookup.");
+				setError("Order not found");
 				return;
 			}
 			const data = (await res.json()) as Order[];
@@ -33,6 +32,7 @@ export default function OrderDetails() {
 				return;
 			}
 			setOrder(data[0] ?? null);
+			setHasZip(false); // No ZIP was provided in URL
 		}
 		void fetchOrder();
 	}, [id, order]);
@@ -87,13 +87,13 @@ export default function OrderDetails() {
 						<div className="grid gap-6 md:gap-8 lg:grid-cols-2 w-full items-start">
 							{/* Left Column: Delivery Estimate */}
 							<div className="space-y-6 md:space-y-8 w-full min-w-0">
-								<DeliveryEstimate order={order} />
-								<OrderHeader order={order} />
+								<DeliveryEstimate order={order} hasZip={hasZip} />
+								<OrderHeader order={order} hasZip={hasZip} />
 							</div>
 
 							{/* Right Column: Parcel Summary */}
 							<div className="space-y-6 md:space-y-8 w-full min-w-0">
-								<ParcelSummary order={order} />
+								<ParcelSummary order={order} hasZip={hasZip} />
 							</div>
 						</div>
 					</div>
