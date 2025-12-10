@@ -95,6 +95,11 @@ export function computeStatus(
 		return scheduled ?? { code: "scheduled", label: "Delivery scheduled" };
 	}
 
+	// "In transit" is an explicit status that should not be overridden by delivery dates
+	if (latestText.includes("in transit")) {
+		return { code: "in_transit", label: "In transit" };
+	}
+
 	const statusFromDueDate = buildStatusFromDueDate(latestDeliveryDate, now);
 	if (statusFromDueDate) {
 		return statusFromDueDate;
