@@ -376,4 +376,71 @@ describe("ParcelSummary", () => {
 		rerender(<ParcelSummary order={orderMultiple} />);
 		expect(screen.getByText("2 items")).toBeInTheDocument();
 	});
+
+	it("hides package contents when hasZip is false", () => {
+		const order: Order = {
+			_id: "1",
+			created: "2023-01-01T00:00:00Z",
+			updated: "2023-01-01T00:00:00Z",
+			delivery_info: {
+				articles: [
+					{
+						articleNo: "AB20224",
+						articleName: "iPhone Pro 128GB",
+						articleImageUrl: "https://example.com/image.jpg",
+						quantity: 1,
+						price: 1299.0,
+					},
+				],
+			},
+		};
+
+		const { container } = render(<ParcelSummary order={order} hasZip={false} />);
+		expect(container.firstChild).toBeNull();
+	});
+
+	it("shows package contents when hasZip is true", () => {
+		const order: Order = {
+			_id: "1",
+			created: "2023-01-01T00:00:00Z",
+			updated: "2023-01-01T00:00:00Z",
+			delivery_info: {
+				articles: [
+					{
+						articleNo: "AB20224",
+						articleName: "iPhone Pro 128GB",
+						articleImageUrl: "https://example.com/image.jpg",
+						quantity: 1,
+						price: 1299.0,
+					},
+				],
+			},
+		};
+
+		render(<ParcelSummary order={order} hasZip={true} />);
+		expect(screen.getByText("Package Contents")).toBeInTheDocument();
+		expect(screen.getByText("iPhone Pro 128GB")).toBeInTheDocument();
+	});
+
+	it("defaults to showing contents when hasZip is not provided", () => {
+		const order: Order = {
+			_id: "1",
+			created: "2023-01-01T00:00:00Z",
+			updated: "2023-01-01T00:00:00Z",
+			delivery_info: {
+				articles: [
+					{
+						articleNo: "AB20224",
+						articleName: "iPhone Pro 128GB",
+						articleImageUrl: "https://example.com/image.jpg",
+						quantity: 1,
+						price: 1299.0,
+					},
+				],
+			},
+		};
+
+		render(<ParcelSummary order={order} />);
+		expect(screen.getByText("Package Contents")).toBeInTheDocument();
+	});
 });

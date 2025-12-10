@@ -4,9 +4,10 @@ import { ArticleImage } from "./ArticleImage";
 
 interface ParcelSummaryProps {
 	order: Order;
+	hasZip?: boolean;
 }
 
-export function ParcelSummary({ order }: ParcelSummaryProps) {
+export function ParcelSummary({ order, hasZip = true }: ParcelSummaryProps) {
 	const articles = order.delivery_info?.articles ?? [];
 	const totalItems = articles.reduce(
 		(sum, article) => sum + (article.quantity || 0),
@@ -17,7 +18,8 @@ export function ParcelSummary({ order }: ParcelSummaryProps) {
 		0,
 	);
 
-	if (articles.length === 0) {
+	// Hide package contents when ZIP is not provided
+	if (!hasZip || articles.length === 0) {
 		return null;
 	}
 

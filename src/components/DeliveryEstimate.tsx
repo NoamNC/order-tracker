@@ -6,9 +6,10 @@ import { cn } from "@/lib/utils";
 
 interface DeliveryEstimateProps {
 	order: Order;
+	hasZip?: boolean;
 }
 
-export function DeliveryEstimate({ order }: DeliveryEstimateProps) {
+export function DeliveryEstimate({ order, hasZip = true }: DeliveryEstimateProps) {
 	const tz = order.delivery_info?.timezone ?? "UTC";
 	const deliveryInfo = order.delivery_info;
 	const announcedDate = deliveryInfo?.announced_delivery_date;
@@ -102,7 +103,8 @@ export function DeliveryEstimate({ order }: DeliveryEstimateProps) {
 					</div>
 				)}
 
-				{deliveryInfo?.street && (
+				{/* Delivery Address - Only show when ZIP is provided */}
+				{hasZip && deliveryInfo?.street && (
 					<div className="pt-2 border-t">
 						<p className="text-sm font-medium mb-1">Delivery Address</p>
 						<div className="text-sm text-muted-foreground space-y-0.5">
