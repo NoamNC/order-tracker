@@ -90,4 +90,26 @@ describe("computeStatus", () => {
 			computeStatus(cps, { announced_delivery_date: "2023-01-07" }).code,
 		).toBe("delayed");
 	});
+
+	it("detects out for delivery", () => {
+		const cps: Checkpoint[] = [
+			{
+				status: "Out for delivery",
+				status_details: "Your package is out for delivery",
+				event_timestamp: "2023-01-08T08:00:00Z",
+			},
+		];
+		expect(computeStatus(cps).code).toBe("out_for_delivery");
+	});
+
+	it("detects out for delivery from status details", () => {
+		const cps: Checkpoint[] = [
+			{
+				status: "In transit",
+				status_details: "Your package is out for delivery to recipient",
+				event_timestamp: "2023-01-08T08:00:00Z",
+			},
+		];
+		expect(computeStatus(cps).code).toBe("out_for_delivery");
+	});
 });
