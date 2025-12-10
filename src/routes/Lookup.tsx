@@ -26,9 +26,12 @@ export default function Lookup() {
 		setError(null);
 		setLoading(true);
 		try {
-			const res = await fetch(
-				`/orders/${encodeURIComponent(orderNumber)}?zip=${encodeURIComponent(zip)}`,
-			);
+			const trimmedZip = zip.trim();
+			const hasZip = trimmedZip.length > 0;
+			const url = hasZip
+				? `/orders/${encodeURIComponent(orderNumber)}?zip=${encodeURIComponent(trimmedZip)}`
+				: `/orders/${encodeURIComponent(orderNumber)}`;
+			const res = await fetch(url);
 			if (!res.ok) {
 				const text = await res.text();
 				setError(text || "Order not found or zip mismatch");
@@ -42,7 +45,7 @@ export default function Lookup() {
 			}
 			navigate(
 				`/order/${encodeURIComponent(order.delivery_info?.orderNo ?? orderNumber)}`,
-				{ state: { order: order } },
+				{ state: { order: order, hasZip } },
 			);
 		} catch (_err) {
 			setError("Network error. Please try again.");
@@ -57,7 +60,7 @@ export default function Lookup() {
 				<CardHeader>
 					<CardTitle>Track your shipment</CardTitle>
 					<CardDescription>
-						Enter your order number and ZIP code to see delivery status.
+						Enter your order number to see delivery status. ZIP code is optional but provides additional details.
 					</CardDescription>
 				</CardHeader>
 				<CardContent>
@@ -74,14 +77,13 @@ export default function Lookup() {
 							/>
 						</div>
 						<div className="grid gap-2">
-							<Label htmlFor="zip">ZIP code</Label>
+							<Label htmlFor="zip">ZIP code (optional)</Label>
 							<Input
 								id="zip"
 								value={zip}
 								onChange={(e) => setZip(e.target.value)}
 								autoComplete="off"
 								placeholder="e.g. 60156"
-								required
 							/>
 						</div>
 						<Button
