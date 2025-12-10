@@ -78,8 +78,6 @@ export function computeStatus(
 	if (latestText.includes("delay")) {
 		return { code: "delayed", label: "Delayed" };
 	}
-
-	// Out for delivery should be checked before scheduled/in_transit
 	if (
 		latestText.includes("out for delivery") ||
 		latestText.includes("on the way to you") ||
