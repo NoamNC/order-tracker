@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { useLocation, useParams } from "react-router-dom";
 import { OrderHeader } from "@/components/OrderHeader";
+import { StatusBanner } from "@/components/StatusBanner";
 import { Timeline } from "@/components/Timeline";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
@@ -40,6 +41,7 @@ export default function OrderDetails() {
 
 	return (
 		<div className="grid gap-6">
+			<StatusBanner order={order} />		
 			<Card>
 				<CardHeader>
 					<CardTitle>Order {order.delivery_info?.orderNo ?? id}</CardTitle>
