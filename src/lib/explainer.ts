@@ -108,9 +108,7 @@ export function explainStatus(
 					latestCheckpoint?.meta?.delivery_time_frame_to
 						? ` between ${latestCheckpoint.meta.delivery_time_frame_from} and ${latestCheckpoint.meta.delivery_time_frame_to}`
 						: "";
-				const city = latestCheckpoint?.city
-					? ` from ${latestCheckpoint.city}`
-					: "";
+				const city = latestCheckpoint?.city ?? "";
 				const timeStr = latestCheckpoint
 					? formatTime(latestCheckpoint.event_timestamp, tz)
 					: "";
@@ -120,9 +118,9 @@ export function explainStatus(
 				
 				let explanation = `Your package is scheduled for delivery ${dateLabel}${timeFrame}.`;
 				if (city && timeStr) {
-					explanation += ` It left${city} at ${timeStr}${dateLabelCheckpoint && dateLabelCheckpoint !== "today" ? ` ${dateLabelCheckpoint}` : ""}.`;
+					explanation += ` It departed from ${city} at ${timeStr}${dateLabelCheckpoint && dateLabelCheckpoint !== "today" ? ` ${dateLabelCheckpoint}` : ""}.`;
 				} else if (city) {
-					explanation += ` It left${city}${dateLabelCheckpoint && dateLabelCheckpoint !== "today" ? ` ${dateLabelCheckpoint}` : ""}.`;
+					explanation += ` It departed from ${city}${dateLabelCheckpoint && dateLabelCheckpoint !== "today" ? ` ${dateLabelCheckpoint}` : ""}.`;
 				}
 				
 				return {
@@ -150,7 +148,7 @@ export function explainStatus(
 		}
 
 		case "out_for_delivery": {
-			const city = latestCheckpoint?.city ? ` from ${latestCheckpoint.city}` : "";
+			const city = latestCheckpoint?.city ?? "";
 			const timeStr = latestCheckpoint
 				? formatTime(latestCheckpoint.event_timestamp, tz)
 				: "";
@@ -161,19 +159,17 @@ export function explainStatus(
 				? relativeDayLabel(announcedDate + "T12:00:00Z", tz, now)
 				: null;
 
-			// Carrier-specific messaging
-			const courier = order.courier?.toLowerCase() ?? "";
 			let explanation = "";
 			
 			if (latestCheckpoint) {
 				const statusText = normalize(latestCheckpoint.status_details);
 				if (statusText.includes("depot") || statusText.includes("facility")) {
-					explanation = `Your parcel left${city || " the local depot"}${timeStr ? ` at ${timeStr}` : ""}${dateLabel !== "today" ? ` ${dateLabel}` : ""} and is out for delivery${expectedDate ? ` ${expectedDate}` : " today"}.`;
+					explanation = `Your parcel departed ${city ? `from ${city}` : "the local depot"}${timeStr ? ` at ${timeStr}` : ""}${dateLabel !== "today" ? ` ${dateLabel}` : ""} and is out for delivery${expectedDate ? `. Expected delivery ${expectedDate}` : " today"}.`;
 				} else {
-					explanation = `Your package is out for delivery${city || ""}${timeStr ? ` (departed at ${timeStr})` : ""}${expectedDate ? `. Expected delivery ${expectedDate}` : " today"}.`;
+					explanation = `Your package is out for delivery${city ? ` from ${city}` : ""}${timeStr ? ` (departed at ${timeStr})` : ""}${expectedDate ? `. Expected delivery ${expectedDate}` : " today"}.`;
 				}
 			} else {
-				explanation = `Your package is out for delivery${expectedDate ? ` ${expectedDate}` : " today"}.`;
+				explanation = `Your package is out for delivery${expectedDate ? `. Expected delivery ${expectedDate}` : " today"}.`;
 			}
 
 			return {
@@ -185,9 +181,7 @@ export function explainStatus(
 		}
 
 		case "in_transit": {
-			const city = latestCheckpoint?.city
-				? ` from ${latestCheckpoint.city}`
-				: "";
+			const city = latestCheckpoint?.city ?? "";
 			const timeStr = latestCheckpoint
 				? formatTime(latestCheckpoint.event_timestamp, tz)
 				: "";
@@ -204,14 +198,14 @@ export function explainStatus(
 				// Check for depot/facility patterns for better explanations
 				if (statusText.includes("depot") || statusText.includes("facility") || statusText.includes("sorting center")) {
 					const dayPart = dateLabel && dateLabel !== "today" ? ` ${dateLabel}` : "";
-					explanation = `Your parcel left${city || " the local depot"}${timeStr ? ` at ${timeStr}` : ""}${dayPart}${expectedDate ? ` and is expected ${expectedDate}` : ""}.`;
+					explanation = `Your parcel departed ${city ? `from ${city}` : "the local depot"}${timeStr ? ` at ${timeStr}` : ""}${dayPart}${expectedDate ? ` and is expected ${expectedDate}` : ""}.`;
 				} else if (statusText.includes("arrived") || statusText.includes("arrival")) {
-					explanation = `Your package arrived${city ? ` in ${latestCheckpoint.city}` : ""}${timeStr ? ` at ${timeStr}` : ""}${dateLabel && dateLabel !== "today" ? ` ${dateLabel}` : ""}${expectedDate ? `. Expected delivery: ${expectedDate}` : ""}.`;
+					explanation = `Your package arrived${city ? ` in ${city}` : ""}${timeStr ? ` at ${timeStr}` : ""}${dateLabel && dateLabel !== "today" ? ` ${dateLabel}` : ""}${expectedDate ? `. Expected delivery: ${expectedDate}.` : "."}`;
 				} else {
-					explanation = `Your package is in transit${city || ""}${timeStr ? ` (last update: ${timeStr})` : ""}${expectedDate ? `. Expected delivery: ${expectedDate}` : ""}.`;
+					explanation = `Your package is in transit${city ? ` from ${city}` : ""}${timeStr ? ` (last update: ${timeStr})` : ""}${expectedDate ? `. Expected delivery: ${expectedDate}.` : "."}`;
 				}
 			} else {
-				explanation = `Your package is in transit${expectedDate ? `. Expected delivery: ${expectedDate}` : "."}`;
+				explanation = `Your package is in transit${expectedDate ? `. Expected delivery: ${expectedDate}.` : "."}`;
 			}
 
 			return {
