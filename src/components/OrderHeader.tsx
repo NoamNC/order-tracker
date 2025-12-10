@@ -9,7 +9,10 @@ export function OrderHeader({ order }: { order: Order }) {
 	const tz = order.delivery_info?.timezone ?? "UTC";
 	const updatedLabel = relativeDayLabel(order.updated, tz);
 	const status = useMemo(
-		() => (order ? computeStatus(order.checkpoints ?? []) : null),
+		() =>
+			order
+				? computeStatus(order.checkpoints ?? [], order.delivery_info)
+				: null,
 		[order],
 	);
 
