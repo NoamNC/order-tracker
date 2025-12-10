@@ -29,7 +29,7 @@ describe("OrderHeader", () => {
 	};
 
 	it("displays basic order information", () => {
-		render(<OrderHeader order={baseOrder} />);
+		render(<OrderHeader orders={[baseOrder]} />);
 
 		expect(screen.getByText("Order Information")).toBeInTheDocument();
 		expect(screen.getByText("0000RTAB1")).toBeInTheDocument();
@@ -38,7 +38,7 @@ describe("OrderHeader", () => {
 	});
 
 	it("displays recipient information when hasZip is true", () => {
-		render(<OrderHeader order={baseOrder} hasZip={true} />);
+		render(<OrderHeader orders={[baseOrder]} hasZip={true} />);
 
 		expect(screen.getByText("Recipient")).toBeInTheDocument();
 		expect(screen.getByText("Ollie Wright")).toBeInTheDocument();
@@ -46,7 +46,7 @@ describe("OrderHeader", () => {
 	});
 
 	it("hides recipient information when hasZip is false", () => {
-		render(<OrderHeader order={baseOrder} hasZip={false} />);
+		render(<OrderHeader orders={[baseOrder]} hasZip={false} />);
 
 		expect(screen.queryByText("Recipient")).not.toBeInTheDocument();
 		expect(screen.queryByText("Ollie Wright")).not.toBeInTheDocument();
@@ -54,14 +54,14 @@ describe("OrderHeader", () => {
 	});
 
 	it("defaults to showing recipient information when hasZip is not provided", () => {
-		render(<OrderHeader order={baseOrder} />);
+		render(<OrderHeader orders={[baseOrder]} />);
 
 		expect(screen.getByText("Recipient")).toBeInTheDocument();
 		expect(screen.getByText("Ollie Wright")).toBeInTheDocument();
 	});
 
 	it("still displays order number and tracking when hasZip is false", () => {
-		render(<OrderHeader order={baseOrder} hasZip={false} />);
+		render(<OrderHeader orders={[baseOrder]} hasZip={false} />);
 
 		expect(screen.getByText("0000RTAB1")).toBeInTheDocument();
 		expect(screen.getByText("AB20221219")).toBeInTheDocument();
@@ -78,9 +78,30 @@ describe("OrderHeader", () => {
 			},
 		};
 
-		render(<OrderHeader order={orderWithoutRecipient} hasZip={true} />);
+		render(<OrderHeader orders={[orderWithoutRecipient]} hasZip={true} />);
 
 		expect(screen.queryByText("Recipient")).not.toBeInTheDocument();
 		expect(screen.getByText("0000RTAB1")).toBeInTheDocument();
+	});
+
+	it("displays multiple tracking numbers when order has multiple shipments", () => {
+		const secondOrder: Order = {
+			_id: "2",
+			created: "2023-01-01T00:00:00Z",
+			updated: "2023-01-02T14:10:30Z",
+			tracking_number: "74328923203",
+			courier: "ups",
+			destination_country_iso3: "USA",
+			delivery_info: baseOrder.delivery_info,
+			checkpoints: [],
+		};
+
+		render(<OrderHeader orders={[baseOrder, secondOrder]} />);
+
+		expect(screen.getByText("Tracking Numbers")).toBeInTheDocument();
+		expect(screen.getByText("AB20221219")).toBeInTheDocument();
+		expect(screen.getByText("74328923203")).toBeInTheDocument();
+		expect(screen.getByText("DHL")).toBeInTheDocument();
+		expect(screen.getByText("UPS")).toBeInTheDocument();
 	});
 });

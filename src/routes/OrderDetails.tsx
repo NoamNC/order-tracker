@@ -11,15 +11,20 @@ import type { Order } from "@/types/order";
 export default function OrderDetails() {
 	const { id } = useParams();
 	const location = useLocation();
-	const locationState = location.state as { order?: Order; hasZip?: boolean } | null;
-	const [order, setOrder] = useState<Order | null>(locationState?.order ?? null);
+	const locationState = location.state as { order?: Order; orders?: Order[]; hasZip?: boolean } | null;
+	const [orders, setOrders] = useState<Order[]>(
+		locationState?.orders ?? (locationState?.order ? [locationState.order] : [])
+	);
 	const [hasZip, setHasZip] = useState<boolean>(locationState?.hasZip ?? false);
 	const [error, setError] = useState<string | null>(null);
-	const tz = order?.delivery_info?.timezone ?? "UTC";
+	
+	// Use first order for shared info (delivery_info is the same across all shipments)
+	const primaryOrder = orders[0] ?? null;
+	const tz = primaryOrder?.delivery_info?.timezone ?? "UTC";
 
 	useEffect(() => {
 		async function fetchOrder() {
-			if (order || !id) return;
+			if (orders.length > 0 || !id) return;
 			// Fetch without ZIP to get basic tracking info
 			const res = await fetch(`/orders/${encodeURIComponent(id)}`);
 			if (!res.ok) {
@@ -31,11 +36,11 @@ export default function OrderDetails() {
 				setError("Order not found");
 				return;
 			}
-			setOrder(data[0] ?? null);
+			setOrders(data);
 			setHasZip(false); // No ZIP was provided in URL
 		}
 		void fetchOrder();
-	}, [id, order]);
+	}, [id, orders.length]);
 
 	if (error) {
 		return (
@@ -49,7 +54,7 @@ export default function OrderDetails() {
 		);
 	}
 
-	if (!order) {
+	if (!primaryOrder) {
 		return (
 			<div className="w-full max-w-4xl mx-auto py-8">
 				<div className="flex items-center justify-center py-12">
@@ -79,7 +84,7 @@ export default function OrderDetails() {
 				<div id="check" className="flex flex-col items-stretch gap-6 md:gap-8 w-full">
 					{/* Status Banner - Full Width */}
 					<div className="w-full">
-						<StatusBanner order={order} />
+						<StatusBanner order={primaryOrder} />
 					</div>
 
 					{/* Two Column Layout: Delivery Info + Order Info */}
@@ -87,43 +92,53 @@ export default function OrderDetails() {
 						<div className="grid gap-6 md:gap-8 lg:grid-cols-2 w-full items-start">
 							{/* Left Column: Delivery Estimate */}
 							<div className="space-y-6 md:space-y-8 w-full min-w-0">
-								<DeliveryEstimate order={order} hasZip={hasZip} />
-								<OrderHeader order={order} hasZip={hasZip} />
+								<DeliveryEstimate order={primaryOrder} hasZip={hasZip} />
+								<OrderHeader orders={orders} hasZip={hasZip} />
 							</div>
 
 							{/* Right Column: Parcel Summary */}
 							<div className="space-y-6 md:space-y-8 w-full min-w-0">
-								<ParcelSummary order={order} hasZip={hasZip} />
+								<ParcelSummary order={primaryOrder} hasZip={hasZip} />
 							</div>
 						</div>
 					</div>
 
-					{/* Timeline - Full Width */}
-					<div className="w-full">
-						<Card className="w-full">
-							<CardHeader>
-								<CardTitle className="text-lg md:text-xl flex items-center gap-2">
-									<svg
-										className="w-5 h-5"
-										fill="none"
-										stroke="currentColor"
-										viewBox="0 0 24 24"
-										aria-hidden="true"
-									>
-										<path
-											strokeLinecap="round"
-											strokeLinejoin="round"
-											strokeWidth={2}
-											d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4"
-										/>
-									</svg>
-									Tracking History
-								</CardTitle>
-							</CardHeader>
-							<CardContent className="pt-6">
-								<Timeline checkpoints={order.checkpoints ?? []} tz={tz} />
-							</CardContent>
-						</Card>
+					{/* Timelines - Full Width, one for each tracking number */}
+					<div className="w-full space-y-6 md:space-y-8">
+						{orders.map((order, index) => {
+							// Use courier + tracking_number as key, fallback to _id, then index
+							const key = order._id || `${order.courier}-${order.tracking_number}-${index}`;
+							const trackingLabel = order.tracking_number
+								? `${order.tracking_number}${order.courier ? ` (${order.courier.toUpperCase()})` : ""}`
+								: `Tracking ${index + 1}`;
+
+							return (
+								<Card key={key} className="w-full">
+									<CardHeader>
+										<CardTitle className="text-lg md:text-xl flex items-center gap-2">
+											<svg
+												className="w-5 h-5"
+												fill="none"
+												stroke="currentColor"
+												viewBox="0 0 24 24"
+												aria-hidden="true"
+											>
+												<path
+													strokeLinecap="round"
+													strokeLinejoin="round"
+													strokeWidth={2}
+													d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4"
+												/>
+											</svg>
+											Tracking History {orders.length > 1 && `- ${trackingLabel}`}
+										</CardTitle>
+									</CardHeader>
+									<CardContent className="pt-6">
+										<Timeline checkpoints={order.checkpoints ?? []} tz={tz} />
+									</CardContent>
+								</Card>
+							);
+						})}
 					</div>
 				</div>
 			</div>
