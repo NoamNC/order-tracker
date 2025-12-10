@@ -38,14 +38,14 @@ export default function Lookup() {
 				return;
 			}
 			const orders = (await res.json()) as Order[];
-			const order = orders[0];
-			if (!order) {
+			if (orders.length === 0) {
 				setError("Order not found");
 				return;
 			}
+			const primaryOrder = orders[0];
 			navigate(
-				`/order/${encodeURIComponent(order.delivery_info?.orderNo ?? orderNumber)}`,
-				{ state: { order: order, hasZip } },
+				`/order/${encodeURIComponent(primaryOrder.delivery_info?.orderNo ?? orderNumber)}`,
+				{ state: { order: primaryOrder, hasZip } },
 			);
 		} catch (_err) {
 			setError("Network error. Please try again.");
