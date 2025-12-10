@@ -6,7 +6,7 @@ import { Badge } from "./ui/badge";
 import { Card, CardContent, CardHeader, CardTitle } from "./ui/card";
 import { Separator } from "./ui/separator";
 
-export function OrderHeader({ order }: { order: Order }) {
+export function OrderHeader({ order, hasZip = true }: { order: Order; hasZip?: boolean }) {
 	const info = order.delivery_info;
 	const tz = order.delivery_info?.timezone ?? "UTC";
 	const updatedLabel = relativeDayLabel(order.updated, tz);
@@ -68,8 +68,8 @@ export function OrderHeader({ order }: { order: Order }) {
 
 				<Separator />
 
-				{/* Recipient Information */}
-				{info?.recipient && (
+				{/* Recipient Information - Only show when ZIP is provided */}
+				{hasZip && info?.recipient && (
 					<>
 						<div className="text-center sm:text-left">
 							<p className="text-xs font-medium text-muted-foreground mb-1.5 uppercase tracking-wide">
