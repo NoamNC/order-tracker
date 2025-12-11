@@ -27,10 +27,11 @@ describe("API Handlers - ZIP and ZIP-less lookups", () => {
 		expect(orders.length).toBeGreaterThan(0);
 		
 		const order = orders[0];
-		expect(order.delivery_info?.orderNo).toBe("0000RTAB1");
-		expect(order.delivery_info?.recipient).toBeDefined();
-		expect(order.delivery_info?.articles).toBeDefined();
-		expect(order.delivery_info?.street).toBeDefined();
+		expect(order).toBeDefined();
+		expect(order!.delivery_info?.orderNo).toBe("0000RTAB1");
+		expect(order!.delivery_info?.recipient).toBeDefined();
+		expect(order!.delivery_info?.articles).toBeDefined();
+		expect(order!.delivery_info?.street).toBeDefined();
 	});
 
 	it("returns 403 when ZIP is provided but does not match", async () => {
@@ -47,15 +48,16 @@ describe("API Handlers - ZIP and ZIP-less lookups", () => {
 		expect(orders.length).toBeGreaterThan(0);
 		
 		const order = orders[0];
-		expect(order.delivery_info?.orderNo).toBe("0000RTAB1");
-		expect(order.tracking_number).toBeDefined();
-		expect(order.checkpoints).toBeDefined();
+		expect(order).toBeDefined();
+		expect(order!.delivery_info?.orderNo).toBe("0000RTAB1");
+		expect(order!.tracking_number).toBeDefined();
+		expect(order!.checkpoints).toBeDefined();
 		
 		// Sensitive data should be removed
-		expect(order.delivery_info?.recipient).toBeUndefined();
-		expect(order.delivery_info?.email).toBeUndefined();
-		expect(order.delivery_info?.street).toBeUndefined();
-		expect(order.delivery_info?.articles).toBeUndefined();
+		expect(order!.delivery_info?.recipient).toBeUndefined();
+		expect(order!.delivery_info?.email).toBeUndefined();
+		expect(order!.delivery_info?.street).toBeUndefined();
+		expect(order!.delivery_info?.articles).toBeUndefined();
 	});
 
 	it("returns 404 when order is not found", async () => {
@@ -76,14 +78,15 @@ describe("API Handlers - ZIP and ZIP-less lookups", () => {
 		
 		const orders = (await response.json()) as Order[];
 		const order = orders[0];
+		expect(order).toBeDefined();
 		
 		// Basic tracking info should be preserved
-		expect(order._id).toBeDefined();
-		expect(order.tracking_number).toBeDefined();
-		expect(order.courier).toBeDefined();
-		expect(order.checkpoints).toBeDefined();
-		expect(order.delivery_info?.orderNo).toBeDefined();
-		expect(order.delivery_info?.timezone).toBeDefined();
-		expect(order.delivery_info?.announced_delivery_date).toBeDefined();
+		expect(order!._id).toBeDefined();
+		expect(order!.tracking_number).toBeDefined();
+		expect(order!.courier).toBeDefined();
+		expect(order!.checkpoints).toBeDefined();
+		expect(order!.delivery_info?.orderNo).toBeDefined();
+		expect(order!.delivery_info?.timezone).toBeDefined();
+		expect(order!.delivery_info?.announced_delivery_date).toBeDefined();
 	});
 });
