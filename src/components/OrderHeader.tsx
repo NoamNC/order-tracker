@@ -33,7 +33,7 @@ export function OrderHeader({
 			</CardHeader>
 			<CardContent className="space-y-4">
 				{/* Order Number */}
-				<div className="text-center sm:text-left">
+				<div className="text-left">
 					<p className="text-xs font-medium text-muted-foreground mb-1.5 uppercase tracking-wide">
 						Order Number
 					</p>
@@ -54,7 +54,7 @@ export function OrderHeader({
 							{orders.map((order, index) => (
 								<div
 									key={order._id || `${order.courier}-${order.tracking_number}-${index}`}
-									className="flex items-center gap-2 flex-wrap justify-center sm:justify-start"
+									className="flex items-start gap-2 flex-wrap justify-start sm:justify-start"
 								>
 									<p className="text-base font-mono font-medium">
 										{order.tracking_number ?? "N/A"}
@@ -70,7 +70,7 @@ export function OrderHeader({
 					</div>
 
 					{status && (
-						<div className="text-center sm:text-left">
+						<div className="sm:text-left">
 							<p className="text-xs font-medium text-muted-foreground mb-1.5 uppercase tracking-wide">
 								Status
 							</p>
@@ -86,7 +86,7 @@ export function OrderHeader({
 				{/* Recipient Information - Only show when ZIP is provided */}
 				{hasZip && info?.recipient && (
 					<>
-						<div className="text-center sm:text-left">
+						<div className="text-left">
 							<p className="text-xs font-medium text-muted-foreground mb-1.5 uppercase tracking-wide">
 								Recipient
 							</p>
