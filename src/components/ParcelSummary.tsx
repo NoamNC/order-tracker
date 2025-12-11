@@ -27,7 +27,7 @@ export function ParcelSummary({ order, hasZip = true }: ParcelSummaryProps) {
 		<Card className="w-full">
 			<CardHeader className="pb-3">
 				<CardTitle className="text-lg">Package Contents</CardTitle>
-				<div className="text-sm text-muted-foreground text-center sm:text-left">
+				<div className="text-sm text-muted-foreground text-left">
 					{totalItems} {totalItems === 1 ? "item" : "items"}
 					{totalValue > 0 && (
 						<span className="ml-2">
