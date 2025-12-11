@@ -1,196 +1,273 @@
-# parcelLab — Order Compass (Challenge Scaffold)
+# parcelLab — Order Compass
 
-- [parcelLab — Order Compass (Challenge Scaffold)](#parcellab--order-compass-challenge-scaffold)
-    - [📖 About the project and the use case](#-about-the-project-and-the-use-case)
-    - [⚙️ Technical overview and instructions for developing](#️-technical-overview-and-instructions-for-developing)
-    - [🏗️ Solving the Challenge and Rules to follow](#️-solving-the-challenge-and-rules-to-follow)
-        - [IMPORTANT: Time limit](#important-time-limit)
-        - [Use of AI and coding agents](#use-of-ai-and-coding-agents)
-        - [1️⃣ Overall goal](#1️⃣-overall-goal)
-        - [2️⃣ Backlog tasks to choose from](#2️⃣-backlog-tasks-to-choose-from)
-        - [3️⃣ Deliverables](#3️⃣-deliverables)
+A modern order tracking application that allows users to look up their order status using an order number and optional ZIP code. Built as a frontend engineering challenge demonstrating React best practices, TypeScript, and thoughtful UX design.
 
-## 📖 About the project and the use case
+## 📖 Project Overview
 
-This is a synthetic project to evaluate your frontend engineering skills. It simulates a real world scenario that you
-might encounter when working at parcelLab. We want to see how you approach the task, how you structure your code and how
-you implement the requirements.
+This is an order tracking application that provides end customers with transparent, real-time information about their parcel deliveries. Users can search for orders by order number, with an optional ZIP code for additional security and detailed information. The application features a comprehensive status computation system, clear status explanations, and an enhanced order details page.
 
-The use case is an order tracking application that allows users to look up their order status using an order number and
-zip code. Once the order is found, the user should be able to see detailed information about the order, including its
-current status, checkpoints, and delivery information.
+### Key Features
 
-> Please do not fork this repository. Clone it, work locally, and submit either as (non-forked) repository or a zip file.
+- **Order Lookup**: Search orders by order number with optional ZIP code verification
+- **Computed Status Heuristic**: Intelligent status determination from checkpoints and delivery information
+- **Status Explanations**: Human-readable explanations of current status and next actions
+- **Enhanced Order Details**: Modern, informative order details page with articles, timelines, and delivery estimates
+- **Multi-Parcel Support**: Displays multiple tracking timelines for orders with multiple parcels
+- **Timezone-Aware**: Proper timezone handling for accurate date labels
+- **Performance Optimized**: Memoized computations and efficient rendering
 
-## ⚙️ Technical overview and instructions for developing
+## 🎯 Implemented Features
 
-Modern FE scaffold: **Vite + React + TypeScript + Tailwind (shadcn‑style)**, **MSW** for the mocked API, **Vitest** for
-unit tests, and **Biome** for lint/format.
+The following features were implemented based on priority and business impact:
 
-> This is **starter** code to build an order tracking application. It includes the lookup page, a bare Order Details
-> page, a mocked API, design tokens, and might **contain bugs**.
+### 1. FR-001 — Complete Computed Status Heuristic (Top Priority)
+- **Why**: Directly impacts core user experience and reduces customer service queries
+- **Implementation**: Hierarchical, rule-based status computation in `lib/status.ts`
+- **Features**:
+  - Terminal state detection (delivered)
+  - Action-required states (ready_for_collection, failed_attempt)
+  - Time-sensitive states (delayed detection)
+  - Active delivery states (out_for_delivery with multiple pattern matching)
+  - Scheduled states based on delivery dates
+  - Safe fallback to "in_transit"
+
+### 2. FR-006 — Prominent Status & Next-Action Explainer
+- **Why**: Reduces user uncertainty and builds trust
+- **Implementation**: Status banner with clear explanations in `components/StatusBanner.tsx`
+- **Features**:
+  - Prominent status display with visual indicators
+  - Human-readable explanations (e.g., "Your parcel left the local depot at 08:12 and is expected on Tue")
+  - Next action guidance for users
+  - Rule-based explainer function in `lib/explainer.ts`
+
+### 3. FR-005 — Enhanced Order Details Page
+- **Why**: High visibility page that increases merchant satisfaction
+- **Implementation**: Redesigned `routes/OrderDetails.tsx` with improved information hierarchy
+- **Features**:
+  - Modern, clean design focused on readability
+  - Clear information hierarchy
+  - Integrated status banner and delivery estimates
+  - Article display with images
+  - Multiple timeline support
+
+### 4. DEF-001 — Fixed Failing Tests & TypeScript Errors
+- **Why**: Essential for developer velocity and CI pipeline
+- **Implementation**: Fixed timezone bug in `lib/format.ts` and related test issues
+- **Details**: See "Time-Zone Bug Fix" section below
+
+### 5. FR-004 — Show Order Articles
+- **Why**: High merchant demand and clear user benefit
+- **Implementation**: Article display component in `components/ParcelSummary.tsx`
+- **Features**:
+  - Article listing with names, quantities, and images
+  - Responsive grid layout
+  - Image fallbacks for missing images
+
+### 6. FR-003 — Optional ZIP Input & Limited Access Mode
+- **Why**: Improves accessibility and enables deep-linking
+- **Implementation**: Made ZIP code optional in `routes/Lookup.tsx`
+- **Features**:
+  - Optional ZIP code input
+  - Limited information mode when ZIP is not provided
+  - Deep-linking support via URL (e.g., `/order/0000RTAB1`)
+
+### 7. DEF-002 — Multiple Tracking Timelines Bug Fix
+- **Why**: Important for multi-parcel shipments
+- **Implementation**: Fixed timeline rendering to show all tracking numbers
+- **Features**: Displays separate timelines for each tracking number in an order
+
+## 🛠️ Technical Stack
+
+- **Framework**: React 18.3 with TypeScript
+- **Build Tool**: Vite 5.4
+- **Styling**: Tailwind CSS with shadcn/ui components
+- **Routing**: React Router DOM 6.26
+- **Testing**: 
+  - Vitest for unit tests
+  - Playwright for E2E tests
+  - Testing Library for component tests
+- **Mocking**: MSW (Mock Service Worker) for API mocking
+- **Linting/Formatting**: Biome
+- **Icons**: Lucide React (tree-shakeable)
+
+## 🏗️ Architecture & Design Decisions
+
+### Status Computation Heuristic
+
+The status computation in `lib/status.ts` uses a hierarchical, rule-based approach:
+
+**Priority Order:**
+1. **Terminal states first**: "delivered" is checked first and is terminal
+2. **Action-required states**: "ready_for_collection" and "failed_attempt" take precedence
+3. **Time-sensitive states**: "delayed" detected from explicit mentions and past due dates
+4. **Active delivery states**: "out_for_delivery" with multiple pattern matches for carrier variations
+5. **Scheduled states**: Uses delivery dates when status text indicates scheduling
+6. **Default fallback**: "in_transit" when no specific status can be determined
+
+**Edge Cases Handled:**
+- No checkpoints: Falls back to `announced_delivery_date`
+- Out-of-order timestamps: Checkpoints sorted by `event_timestamp` (descending)
+- Missing status details: Uses `normalize()` to safely combine fields
+- Explicit "in transit" protection: Prevents override by delivery date heuristics
+- Delivery date precedence: Latest checkpoint's `meta.delivery_date` takes precedence
+- Multiple pattern matching: "out_for_delivery" checks 3 different text patterns
+
+**Trade-offs:**
+- Text-based matching: Uses simple string inclusion rather than NLP for reliability and performance
+- Single latest checkpoint: Only considers most recent checkpoint to simplify logic
+- Date-only comparison: Compares dates without time, appropriate for delivery dates
+
+### Time-Zone Bug Fix
+
+**Root Cause:**
+The `relativeDayLabel` function in `lib/format.ts` was incorrectly calculating day differences when comparing dates across timezones. Naive date arithmetic caused dates to be labeled incorrectly—for example, a timestamp at 00:30 UTC on Oct 30 would be labeled as "today" when viewed in America/Chicago timezone (where it's actually Oct 29 at 19:30).
+
+**The Fix:**
+The solution extracts date components directly in the target timezone using `Intl.DateTimeFormat.formatToParts()`, then calculates day differences using a custom `daysSinceEpoch()` function that:
+- Properly handles leap years (including century and 400-year rules)
+- Converts dates to day numbers since a fixed epoch
+- Compares day numbers rather than millisecond timestamps
+- Ensures consistent day-of-year semantics
+
+**Test Coverage:**
+- `tests/unit/relativeDayLabel.spec.ts` includes timezone-aware test cases
+- Verified with multiple timezones (America/Chicago, Europe/Berlin, America/New_York)
+
+### Performance Optimizations
+
+**React Performance:**
+- **useMemo in StatusBanner**: Status computation and explanation generation memoized
+- **useMemo in DeliveryEstimate**: Latest checkpoint calculation memoized
+- **useMemo in OrderHeader**: Status computation memoized
+
+**Bundle Size:**
+- Minimal dependencies: lightweight libraries (lucide-react, @radix-ui/react-slot)
+- Tree-shaking friendly: All imports are ES modules
+- Build target: `es2020` in `vite.config.ts` for modern JavaScript without unnecessary polyfills
+
+**Trade-offs:**
+- Memoization overhead: Slight overhead but negligible compared to recalculating status from large checkpoint arrays
+- No code splitting: Application is small enough that code splitting wasn't necessary
+- No virtual scrolling: Timeline components render all checkpoints; could be added for orders with 100+ checkpoints
+
+## 🚀 Getting Started
 
 ### Prerequisites
 
 - Node.js 20.x or higher
-- pnpm 9.x
+- pnpm 9.x (or npm/yarn)
 
-### Getting started
+### Installation
 
 ```bash
-# install (pnpm preferred, but npm/yarn work too)
+# Install dependencies
 pnpm install
 
-# run dev
+# Run development server
 pnpm dev
 
-# run tests
+# Run tests
 pnpm test
 
-# typecheck, lint & format
+# Run E2E tests
+pnpm test:e2e
+
+# Type checking
 pnpm typecheck
+
+# Linting
 pnpm lint
+
+# Format code
 pnpm format
 ```
 
 Open <http://localhost:5173> and try a valid order like **0000RTAB3** with zip **81371**.
 
-### Structure
+## 📁 Project Structure
 
-```bash
+```
 src/
-  components/ui/*         # shadcn-style primitives (Button, Card, ...)
-  components/Timeline.tsx # simple timeline
-  components/OrderHeader.tsx
-  lib/status.ts           # computed status heuristic (simplified)
-  lib/format.ts           # date formatting helpers
-  mocks/handlers.ts       # MSW mock: GET /orders/:orderNumber?zip=
-  mocks/browser.ts        # MSW worker
-  routes/Lookup.tsx       # lookup form
-  routes/OrderDetails.tsx # details view (uses router state)
-  styles/globals.css      # tailwind + CSS variables
-  types/order.ts          # data types
-data/shipments.json       # provided dataset
-tests/*                   # vitest specs
+  components/
+    ui/              # shadcn-style primitives (Button, Card, Alert, etc.)
+    ArticleImage.tsx # Article image component with fallbacks
+    DeliveryEstimate.tsx # Delivery date estimation component
+    OrderHeader.tsx  # Order header with status and key info
+    ParcelSummary.tsx # Parcel summary with articles
+    StatusBanner.tsx # Prominent status display with explanations
+    Timeline.tsx     # Timeline component for checkpoints
+  lib/
+    explainer.ts     # Rule-based status explanation generator
+    format.ts        # Date formatting helpers (timezone-aware)
+    status.ts        # Computed status heuristic
+    utils.ts         # Utility functions (cn, etc.)
+  routes/
+    ErrorPage.tsx    # Error page component
+    Lookup.tsx       # Order lookup form
+    OrderDetails.tsx # Enhanced order details page
+  mocks/
+    browser.ts       # MSW worker setup
+    handlers.ts      # API mock handlers
+  types/
+    order.ts         # TypeScript type definitions
+  styles/
+    globals.css      # Tailwind + CSS variables
+tests/
+  unit/              # Unit tests (Vitest)
+  e2e/               # E2E tests (Playwright)
+data/
+  shipments.json     # Provided dataset
 ```
 
-### Mocked API
+## 🧪 Testing
 
-- **Endpoint:** `GET /orders/:orderNumber?zip=:zipCode`
-- Returns `404` if order not found, `403` if zip mismatch, `200` with the order otherwise.
-- Implemented via **MSW**; no server needed in dev.
+The project includes comprehensive test coverage:
 
-### Notes
+- **Unit Tests**: Vitest with Testing Library for component and utility testing
+- **E2E Tests**: Playwright for end-to-end user flows
+- **Test Files**:
+  - `status.spec.ts` - Status computation logic
+  - `explainer.spec.ts` - Status explanation generation
+  - `relativeDayLabel.spec.ts` - Timezone-aware date labeling
+  - Component tests for OrderHeader, ParcelSummary, DeliveryEstimate
+  - E2E tests for user workflows
 
-- The shadcn CLI config (`components.json`) is included; you can also generate more components if desired.
-- **Biome** replaces ESLint + Prettier (see `biome.json`).
+Run tests with:
+```bash
+pnpm test          # Unit tests
+pnpm test:watch    # Watch mode
+pnpm test:e2e      # E2E tests
+pnpm test:e2e:ui   # E2E tests with UI
+```
 
-## 🏗️ Solving the Challenge and Rules to follow
+## 🔌 Mocked API
 
-### IMPORTANT: Time limit
+The application uses MSW (Mock Service Worker) for API mocking in development:
 
-> 💡 we want to have a fair playing field for all applicants. Therefore we kindly ask you to NOT spend more than **4
-hours** on this challenge. If you reach the time limit, please stop working on it and send us what you have. We will
-> evaluate your submission based on what you have done so far and also take into consideration that you had a limited
-> time budget.
->
-> We value very much good time management and transparency and prefer working code over unfinished 'perfect' solutions.
+- **Endpoint**: `GET /orders/:orderNumber?zip=:zipCode`
+- **Returns**: 
+  - `404` if order not found
+  - `403` if zip mismatch
+  - `200` with order data otherwise
+- **No server needed**: MSW intercepts requests in the browser
 
-### Use of AI and coding agents
+## 📝 Design Philosophy
 
-You are allowed to use AI tools and coding agents to help you solve the challenge in both code and documentation.
-If you chose to do so, please document any AI usage in the provided `AI_LOG.md` file so we can understand how you
-instructed AI to help you solve the challenge. Just dumping the conversation in there is fine, we are mainly interested
-in how you prompted and verified the outputs.
-> IMPORTANT: once you ship whatever was created either by you or by the llm/agent it is YOUR CODE and your
-> responsibility to make sure it is correct, secure and follows best practices.
+The design was kept simple and focused on readability and deliverability:
 
-### 1️⃣ Overall goal
+- **Clean, modern UI**: Minimal design that doesn't distract from information
+- **Clear information hierarchy**: Most important information (status, next action) is prominent
+- **Accessible**: WCAG-compliant components and semantic HTML
+- **Responsive**: Works well on mobile devices (majority of users)
+- **Performance-first**: Optimized for fast loading and smooth interactions
 
-Pick from the tasks below to improve the project according to your time budget and priorities.
+## 🐛 Known Issues & Future Improvements
 
-### 2️⃣ Backlog tasks to choose from
+- Code splitting could be added for larger features
+- Virtual scrolling could be implemented for orders with 100+ checkpoints
+- Additional status patterns could be added for more carrier variations
+- Enhanced accessibility features (keyboard navigation improvements)
 
-You are free to choose which tasks to implement from the list below. You do NOT have to implement all of them. Pick the ones
-that you think are most relevant to showcase your skills within the given time budget and prioritise them from your
-perspective based on impact on user experience and business value.
-Imagine these are **not yet in a prioritised** list - they were just added to the backlog by various stakeholders and
-you can pick and order them as you see fit. Choose wisely and justify your choices in the `DECISIONS.md` file.
-
-#### FR-001 Complete the computed status heuristic
-
-This is an important part for usability and user experience. The current implementation is simplified and does not cover
-all cases. Improve the `lib/status.ts` to cover more edge cases and provide a more accurate status computation based on
-the order's checkpoints and delivery information.
-
-#### FR-002 improve a11y/perf, improve test coverage
-
-Make sure all code and css is WCAG accessibility act compliant as required by law and best practices. Improve
-performance for mobile devices which are the majority of users. Optimise for lighthouse and Google performance
-criteria. Add more unit/integration tests to cover edge cases and make sure the code is robust. Achieve 100% test
-coverage for all new and existing code. This is preparation for the audit in 2 months.
-
-#### DEF-001 Fix the failing test and related type errors
-
-There is a failing unit test and some TypeScript errors. Identify the root cause, fix the issues, and ensure all tests pass.
-
-#### FR-003 Optional ZIP input to disclose additional order and tracking information
-
-Currently the zip-code in the lookup is required to submit. We should make that optional and display only basic tracking
-information when no zip-code is provided. That also makes the order details page accessible without zip-code, but only
-with limited information and by calling the url with just the order-number (e.g. `/order/0000RTAB1`). If the ZIP code is
-provided the page shall display all information relevant to the recipient and the goods in the order.
-
-#### FR-004 UX improvement: show articles included in the order
-
-Our customers (e-commerce shops) want to provide their end-customers with more transparency about what is included in
-the order. Therefore we want to show the articles included in the order on the order details page. Please enhance the
-order details page to include a section that lists all articles in the order, including their name, quantity, and any
-other relevant information available in the order data. Ideally, include images if available. Links to the article
-detail page on the shop's website would make a good addition as well.
-
-#### FR-005 UX improvement: enhance the order details page
-
-The order details page is functional but bare-bones. Improve the user experience by enhancing the visual design,
-information hierarchy, and overall usability. Consider what information is most important to a user tracking their
-package and how to present it effectively. You have creative freedom here — show us how you would make this page
-delightful and informative for end users.
-
-#### FR-006 Clearly show the user the current status and the next action (for them or the carrier)
-
-we have a computed status, but it is not very visible in the UI. Improve the order details page to prominently display
-the current status (e.g. "In Transit", "Out for Delivery", "Delivered") and what the user can expect next (e.g. "
-Expected delivery tomorrow", "Action required: Please contact carrier"). Or if no action is required, show that clearly
-as well.
-Add a short human‑readable explanation under the computed status (e.g., “Your parcel left the local depot at 08:12 and
-is expected on Tue”).
-
-Implement a rule‑based explainer function and an evaluation harness (/evaluation/explainer.spec.ts) with 4–6 cases.
-
-#### DEF-002 Orders with two tracking numbers show only one tracking timeline
-
-There is a bug in the order details page when an order has two tracking numbers (e.g. from different carriers).
-Currently only one timeline is shown, which can be confusing for users. Fix the bug to ensure that both timelines are
-displayed correctly, allowing users to see the full tracking information for their order. Should be easy.
-
-#### OPEN-001 Surprise us
-
-Is there something you'd love to add, improve, or experiment with? A small feature, a polish detail, a clever
-integration, or just something that makes you proud? This is your chance to show off your creativity and initiative.
-No constraints — just make sure to document your reasoning in `DECISIONS.md`.
-
-### 3️⃣ Deliverables
-
-> **Important**: Do NOT fork this repository. Clone it, work locally, and submit as described below.
-
-A zip file or link to your own private repository containing:
-
-- [ ] Working code that is error-free, type-safe, and well-structured
-- [ ] Commits in small, readable steps — avoid a single "monster" commit
-- [ ] A log of all AI prompts and outputs you used (if any) in `AI_LOG.md`
-- [ ] A brief summary of your design decisions and implementation notes in `DECISIONS.md`
-
----
+## 📄 License
 
 © parcelLab — May your commits be atomic and your parcels always delivered.
-
