@@ -71,7 +71,7 @@ export default function OrderDetails() {
 		<div className="min-h-screen bg-background w-full">
 			<div className="w-full max-w-6xl mx-auto py-6 md:py-8">
 				{/* Page Header */}
-				<div className="mb-6 md:mb-8 text-center sm:text-left">
+				<div className="mb-6 md:mb-8 text-left">
 					<h1 className="text-2xl md:text-3xl font-bold mb-2">
 						Order Tracking
 					</h1>

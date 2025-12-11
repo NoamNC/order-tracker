@@ -8,7 +8,7 @@ export default function App() {
 		location.pathname === "/" || location.pathname === "/lookup";
 
 	return (
-		<div>
+		<div className="min-h-screen flex flex-col">
 			<header className="border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 sticky top-0 z-50">
 				<div className="container-app flex items-center gap-3 py-4">
 					<Link
@@ -25,7 +25,7 @@ export default function App() {
 							fetchPriority="high"
 							decoding="sync"
 						/>
-						<span className="font-semibold text-lg">parcelLab — Order Compass</span>
+						<span className="font-semibold text-sm  sm:text-xl">parcelLab — Order Compass</span>
 					</Link>
 					{!isLookupPage && (
 						<nav className="ml-auto flex gap-4 text-sm">
@@ -60,11 +60,11 @@ export default function App() {
 					)}
 				</div>
 			</header>
-			<main className="container-app">
+			<main className="container-app flex-1">
 				<Outlet />
 			</main>
-			<Separator />
-			<footer className="container-app text-sm text-muted-foreground">
+			<Separator className="my-0" />
+			<footer className="container-app text-sm text-muted-foreground py-4">
 				No parcels were harmed in the making of this demo.
 			</footer>
 		</div>
