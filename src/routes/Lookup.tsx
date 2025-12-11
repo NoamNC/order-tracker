@@ -43,6 +43,10 @@ export default function Lookup() {
 				return;
 			}
 			const primaryOrder = orders[0];
+			if (!primaryOrder) {
+				setError("Order not found");
+				return;
+			}
 			navigate(
 				`/order/${encodeURIComponent(primaryOrder.delivery_info?.orderNo ?? orderNumber)}`,
 				{ state: { order: primaryOrder, hasZip } },
