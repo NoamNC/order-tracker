@@ -143,20 +143,27 @@ export default function OrderDetails() {
 
 							{/* Right Column: Parcel Summary */}
 							<div className="space-y-6 md:space-y-8 w-full min-w-0">
-								{orders.map((order, index) => {
-									const key = order._id || `${order.courier}-${order.tracking_number}-${index}`;
-									const label = orders.length > 1
-										? `Shipment ${index + 1}${order.tracking_number ? ` • ${order.tracking_number}` : ""}`
-										: undefined;
-									return (
-										<ParcelSummary
-											key={key}
-											order={order}
-											hasZip={hasZip}
-											label={label}
-										/>
-									);
-								})}
+								{/* If ZIP isn't provided, package contents are hidden; render the prompt once. */}
+								{!hasZip ? (
+									<ParcelSummary order={primaryOrder} hasZip={false} />
+								) : (
+									orders.map((order, index) => {
+										const key =
+											order._id || `${order.courier}-${order.tracking_number}-${index}`;
+										const label =
+											orders.length > 1
+												? `Shipment ${index + 1}${order.tracking_number ? ` • ${order.tracking_number}` : ""}`
+												: undefined;
+										return (
+											<ParcelSummary
+												key={key}
+												order={order}
+												hasZip={hasZip}
+												label={label}
+											/>
+										);
+									})
+								)}
 							</div>
 						</div>
 					</div>
