@@ -17,11 +17,6 @@ export function ParcelSummary({ order, hasZip = true, label }: ParcelSummaryProp
 			<Card className="w-full">
 				<CardHeader className="pb-3">
 					<CardTitle className="text-lg">Package Contents</CardTitle>
-					{label&&hasZip && (
-						<p className="text-xs text-muted-foreground text-left font-mono">
-							{label}
-						</p>
-					)}
 				</CardHeader>
 				<CardContent>
 					<p className="text-sm text-muted-foreground text-left">
