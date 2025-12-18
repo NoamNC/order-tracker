@@ -1,12 +1,16 @@
 import { useEffect, useState } from "react";
-import { useLocation, useParams } from "react-router-dom";
+import { Link, useLocation, useParams } from "react-router-dom";
 import { OrderHeader } from "@/components/OrderHeader";
 import { StatusBanner } from "@/components/StatusBanner";
 import { Timeline } from "@/components/Timeline";
 import { ParcelSummary } from "@/components/ParcelSummary";
 import { DeliveryEstimate } from "@/components/DeliveryEstimate";
+import { ProblemCard } from "@/components/ProblemCard";
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import type { Order } from "@/types/order";
+import { AlertTriangle, Home, RotateCcw } from "lucide-react";
 
 function orderKey(order: Order): string | null {
 	return order._id ?? order.tracking_number ?? null;
@@ -89,12 +93,44 @@ export default function OrderDetails() {
 
 	if (error) {
 		return (
-			<div className="w-full max-w-4xl mx-auto py-8">
-				<Card className="border-destructive">
-					<CardContent className="pt-6">
-						<p className="text-destructive text-center">{error}</p>
-					</CardContent>
-				</Card>
+			<div className="w-full max-w-4xl mx-auto py-10">
+				<ProblemCard
+					title="We couldn’t find that order"
+					titleAs="h2"
+					icon={<AlertTriangle className="h-5 w-5 text-destructive" aria-hidden="true" />}
+					description={
+						typeof id === "string" && id.trim().length > 0 ? (
+							<>
+								No order matched{" "}
+								<code className="rounded bg-muted px-1.5 py-0.5">{id}</code>. Double-check the order
+								number and try again.
+							</>
+						) : (
+							<>Double-check the order number and try again.</>
+						)
+					}
+					badge={
+						<Badge variant="outline" className="shrink-0">
+							404 Not Found
+						</Badge>
+					}
+					alertTitle="Lookup failed"
+					alertDescription={error}
+					actions={
+						<>
+							<Button asChild>
+								<Link to="/lookup">
+									<Home className="h-4 w-4 mr-2" aria-hidden="true" />
+									Back to lookup
+								</Link>
+							</Button>
+							<Button variant="outline" type="button" onClick={() => window.location.reload()}>
+								<RotateCcw className="h-4 w-4 mr-2" aria-hidden="true" />
+								Reload page
+							</Button>
+						</>
+					}
+				/>
 			</div>
 		);
 	}
