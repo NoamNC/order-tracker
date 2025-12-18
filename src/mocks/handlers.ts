@@ -46,7 +46,9 @@ export const handlers = [
 		}
 
 		// No ZIP provided - return sanitized basic tracking information
-		const sanitized = match.map(sanitizeOrderForZipLessLookup);
+		const sanitized = match
+			.map(sanitizeOrderForZipLessLookup)
+			.sort((a, b) => a._id.localeCompare(b._id));
 		return HttpResponse.json(sanitized, { status: 200 });
 	}),
 ];
