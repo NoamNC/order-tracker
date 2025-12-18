@@ -47,9 +47,16 @@ export default function Lookup() {
 				setError("Order not found");
 				return;
 			}
+			const orderNo = primaryOrder.delivery_info?.orderNo ?? orderNumber;
+			// Persist ZIP for reloads without leaking it into the URL.
+			if (hasZip) {
+				sessionStorage.setItem(`zip:${orderNo}`, trimmedZip);
+			} else {
+				sessionStorage.removeItem(`zip:${orderNo}`);
+			}
 			navigate(
-				`/order/${encodeURIComponent(primaryOrder.delivery_info?.orderNo ?? orderNumber)}`,
-				{ state: { order: primaryOrder, hasZip } },
+				`/order/${encodeURIComponent(orderNo)}`,
+				{ state: { orders, order: primaryOrder, hasZip } },
 			);
 		} catch (_err) {
 			setError("Network error. Please try again.");

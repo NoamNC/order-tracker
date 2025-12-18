@@ -8,6 +8,40 @@ import { DeliveryEstimate } from "@/components/DeliveryEstimate";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import type { Order } from "@/types/order";
 
+function orderKey(order: Order): string | null {
+	return order._id ?? order.tracking_number ?? null;
+}
+
+function mergeOrders(preferred: Order[], fetched: Order[]): Order[] {
+	const map = new Map<string, Order>();
+
+	for (const o of fetched) {
+		const key = orderKey(o);
+		if (!key) continue;
+		map.set(key, o);
+	}
+
+	for (const o of preferred) {
+		const key = orderKey(o);
+		if (!key) continue;
+		const existing = map.get(key);
+		if (!existing) {
+			map.set(key, o);
+			continue;
+		}
+		map.set(key, {
+			...existing,
+			...o,
+			delivery_info: {
+				...existing.delivery_info,
+				...o.delivery_info,
+			},
+		});
+	}
+
+	return Array.from(map.values()).sort((a, b) => (a._id ?? "").localeCompare(b._id ?? ""));
+}
+
 export default function OrderDetails() {
 	const { id } = useParams();
 	const location = useLocation();
@@ -24,9 +58,19 @@ export default function OrderDetails() {
 
 	useEffect(() => {
 		async function fetchOrder() {
-			if (orders.length > 0 || !id) return;
-			// Fetch without ZIP to get basic tracking info
-			const res = await fetch(`/orders/${encodeURIComponent(id)}`);
+			if (!id) return;
+
+			// If we navigated here with the full orders list, don't refetch.
+			if (locationState?.orders && locationState.orders.length > 0) return;
+
+			// If we only had a single order in history state (common after reload),
+			// refetch the full list for this order number.
+			const storedZip = sessionStorage.getItem(`zip:${id}`)?.trim() ?? "";
+			const url =
+				storedZip.length > 0
+					? `/orders/${encodeURIComponent(id)}?zip=${encodeURIComponent(storedZip)}`
+					: `/orders/${encodeURIComponent(id)}`;
+			const res = await fetch(url);
 			if (!res.ok) {
 				setError("Order not found");
 				return;
@@ -36,11 +80,12 @@ export default function OrderDetails() {
 				setError("Order not found");
 				return;
 			}
-			setOrders(data);
-			setHasZip(false); // No ZIP was provided in URL
+			setError(null);
+			setOrders((prev) => (prev.length > 0 ? mergeOrders(prev, data) : data));
+			setHasZip(storedZip.length > 0);
 		}
 		void fetchOrder();
-	}, [id, orders.length]);
+	}, [id, locationState]);
 
 	if (error) {
 		return (
@@ -98,7 +143,27 @@ export default function OrderDetails() {
 
 							{/* Right Column: Parcel Summary */}
 							<div className="space-y-6 md:space-y-8 w-full min-w-0">
-								<ParcelSummary order={primaryOrder} hasZip={hasZip} />
+								{/* If ZIP isn't provided, package contents are hidden; render the prompt once. */}
+								{!hasZip ? (
+									<ParcelSummary order={primaryOrder} hasZip={false} />
+								) : (
+									orders.map((order, index) => {
+										const key =
+											order._id || `${order.courier}-${order.tracking_number}-${index}`;
+										const label =
+											orders.length > 1
+												? `Shipment ${index + 1}${order.tracking_number ? ` • ${order.tracking_number}` : ""}`
+												: undefined;
+										return (
+											<ParcelSummary
+												key={key}
+												order={order}
+												hasZip={hasZip}
+												label={label}
+											/>
+										);
+									})
+								)}
 							</div>
 						</div>
 					</div>

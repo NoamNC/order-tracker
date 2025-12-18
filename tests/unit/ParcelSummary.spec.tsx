@@ -4,7 +4,7 @@ import { ParcelSummary } from "@/components/ParcelSummary";
 import type { Order } from "@/types/order";
 
 describe("ParcelSummary", () => {
-	it("renders nothing when there are no articles", () => {
+	it("shows an empty state when there are no articles", () => {
 		const order: Order = {
 			_id: "1",
 			created: "2023-01-01T00:00:00Z",
@@ -14,19 +14,21 @@ describe("ParcelSummary", () => {
 			},
 		};
 
-		const { container } = render(<ParcelSummary order={order} />);
-		expect(container.firstChild).toBeNull();
+		render(<ParcelSummary order={order} />);
+		expect(screen.getByText("Package Contents")).toBeInTheDocument();
+		expect(screen.getByText("No package contents available.")).toBeInTheDocument();
 	});
 
-	it("renders nothing when delivery_info is missing", () => {
+	it("shows an empty state when delivery_info is missing", () => {
 		const order: Order = {
 			_id: "1",
 			created: "2023-01-01T00:00:00Z",
 			updated: "2023-01-01T00:00:00Z",
 		};
 
-		const { container } = render(<ParcelSummary order={order} />);
-		expect(container.firstChild).toBeNull();
+		render(<ParcelSummary order={order} />);
+		expect(screen.getByText("Package Contents")).toBeInTheDocument();
+		expect(screen.getByText("No package contents available.")).toBeInTheDocument();
 	});
 
 	it("renders article list with all fields", () => {
@@ -377,7 +379,7 @@ describe("ParcelSummary", () => {
 		expect(screen.getByText("2 items")).toBeInTheDocument();
 	});
 
-	it("hides package contents when hasZip is false", () => {
+	it("shows a ZIP-required state when hasZip is false", () => {
 		const order: Order = {
 			_id: "1",
 			created: "2023-01-01T00:00:00Z",
@@ -395,8 +397,12 @@ describe("ParcelSummary", () => {
 			},
 		};
 
-		const { container } = render(<ParcelSummary order={order} hasZip={false} />);
-		expect(container.firstChild).toBeNull();
+		render(<ParcelSummary order={order} hasZip={false} />);
+		expect(screen.getByText("Package Contents")).toBeInTheDocument();
+		expect(
+			screen.getByText("Enter your ZIP code to view package contents."),
+		).toBeInTheDocument();
+		expect(screen.queryByText("iPhone Pro 128GB")).not.toBeInTheDocument();
 	});
 
 	it("shows package contents when hasZip is true", () => {
@@ -444,3 +450,4 @@ describe("ParcelSummary", () => {
 		expect(screen.getByText("Package Contents")).toBeInTheDocument();
 	});
 });
+
