@@ -21,10 +21,12 @@ test("lookup flow works without ZIP code", async ({ page }) => {
 	await expect(page.getByText(/Order Tracking/i)).toBeVisible();
 	await expect(page.getByText("0000RTAB1")).toBeVisible();
 	
-	// Should NOT show sensitive information
+	// Should NOT show sensitive information (ZIP-gated sections should show placeholders instead)
 	await expect(page.getByText(/Recipient/i)).not.toBeVisible();
-	await expect(page.getByText(/Package Contents/i)).not.toBeVisible();
 	await expect(page.getByText(/Delivery Address/i)).not.toBeVisible();
+	await expect(
+		page.getByText(/Enter your ZIP code to view package contents\./i),
+	).toBeVisible();
 });
 
 test("lookup flow works with ZIP code and shows full information", async ({ page }) => {
@@ -40,7 +42,9 @@ test("lookup flow works with ZIP code and shows full information", async ({ page
 	await expect(page.getByText(/Order Tracking/i)).toBeVisible();
 	await expect(page.getByText("0000RTAB1")).toBeVisible();
 	await expect(page.getByText(/Recipient/i)).toBeVisible();
-	await expect(page.getByText(/Package Contents/i)).toBeVisible();
+	await expect(
+		page.getByRole("heading", { name: /package contents/i }).first(),
+	).toBeVisible();
 	await expect(page.getByText(/Delivery Address/i)).toBeVisible();
 });
 
@@ -54,8 +58,10 @@ test("direct URL access without ZIP shows limited information", async ({ page })
 	
 	// Should NOT show sensitive information
 	await expect(page.getByText(/Recipient/i)).not.toBeVisible();
-	await expect(page.getByText(/Package Contents/i)).not.toBeVisible();
 	await expect(page.getByText(/Delivery Address/i)).not.toBeVisible();
+	await expect(
+		page.getByText(/Enter your ZIP code to view package contents\./i),
+	).toBeVisible();
 });
 
 // NOTE: This test is intentionally minimal. In the challenge, ask candidates to make E2E stable & data-driven.

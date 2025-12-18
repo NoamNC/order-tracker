@@ -29,7 +29,6 @@ function ArticleImage({ src, alt, fallback }: ArticleImageProps) {
 					imageLoaded ? "opacity-100" : "opacity-0",
 				)}
 				loading="lazy"
-				fetchPriority="low"
 				decoding="async"
 				onError={() => setError(true)}
 				onLoad={() => {
