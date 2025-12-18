@@ -22,7 +22,6 @@ export default function App() {
 							width={28}
 							height={28}
 							loading="eager"
-							fetchPriority="high"
 							decoding="sync"
 						/>
 						<span className="font-semibold text-sm  sm:text-xl">parcelLab — Order Compass</span>
