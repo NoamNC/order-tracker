@@ -5,28 +5,68 @@ import { ArticleImage } from "./ArticleImage";
 interface ParcelSummaryProps {
 	order: Order;
 	hasZip?: boolean;
+	label?: string;
 }
 
-export function ParcelSummary({ order, hasZip = true }: ParcelSummaryProps) {
+export function ParcelSummary({ order, hasZip = true, label }: ParcelSummaryProps) {
 	const articles = order.delivery_info?.articles ?? [];
-	const totalItems = articles.reduce(
-		(sum, article) => sum + (article.quantity || 0),
-		0,
-	);
+	// Hide sensitive package contents when ZIP is not provided, but keep the card visible
+	// so the UI doesn't "disappear" unexpectedly.
+	if (!hasZip) {
+		return (
+			<Card className="w-full">
+				<CardHeader className="pb-3">
+					<CardTitle className="text-lg">Package Contents</CardTitle>
+					{label&&hasZip && (
+						<p className="text-xs text-muted-foreground text-left font-mono">
+							{label}
+						</p>
+					)}
+				</CardHeader>
+				<CardContent>
+					<p className="text-sm text-muted-foreground text-left">
+						Enter your ZIP code to view package contents.
+					</p>
+				</CardContent>
+			</Card>
+		);
+	}
+
+	if (articles.length === 0) {
+		return (
+			<Card className="w-full">
+				<CardHeader className="pb-3">
+					<CardTitle className="text-lg">Package Contents</CardTitle>
+					{label && (
+						<p className="text-xs text-muted-foreground text-left font-mono">
+							{label}
+						</p>
+					)}
+				</CardHeader>
+				<CardContent>
+					<p className="text-sm text-muted-foreground text-left">
+						No package contents available.
+					</p>
+				</CardContent>
+			</Card>
+		);
+	}
+
+	const totalItems = articles.reduce((sum, article) => sum + (article.quantity || 0), 0);
 	const totalValue = articles.reduce(
 		(sum, article) => sum + (article.price || 0) * (article.quantity || 0),
 		0,
 	);
 
-	// Hide package contents when ZIP is not provided
-	if (!hasZip || articles.length === 0) {
-		return null;
-	}
-
 	return (
 		<Card className="w-full">
 			<CardHeader className="pb-3">
 				<CardTitle className="text-lg">Package Contents</CardTitle>
+				{label && (
+					<p className="text-xs text-muted-foreground text-left font-mono">
+						{label}
+					</p>
+				)}
 				<div className="text-sm text-muted-foreground text-left">
 					{totalItems} {totalItems === 1 ? "item" : "items"}
 					{totalValue > 0 && (
