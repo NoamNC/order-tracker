@@ -1,7 +1,6 @@
-import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardDescription, CardHeader } from "@/components/ui/card";
+import { ProblemCard } from "@/components/ProblemCard";
 import { AlertTriangle, Home, RotateCcw } from "lucide-react";
 import { isRouteErrorResponse, Link, useLocation, useRouteError } from "react-router-dom";
 
@@ -94,41 +93,27 @@ export default function ErrorPage({ reload }: ErrorPageProps) {
 						</span>
 					</div>
 
-					<Card className="overflow-hidden">
-						<CardHeader className="space-y-3">
-							<div className="flex items-start justify-between gap-4">
-								<div className="space-y-2">
-									<h1 className="text-2xl font-semibold leading-none tracking-tight flex items-center gap-2">
-										<AlertTriangle
-											className="h-5 w-5 text-destructive"
-											aria-hidden="true"
-										/>
-										{title}
-									</h1>
-									<CardDescription>{message}</CardDescription>
-								</div>
-
-								{status ? (
-									<Badge
-										variant={isNotFound ? "outline" : "destructive"}
-										className="shrink-0"
-									>
-										{status}
-										{statusText ? ` ${statusText}` : ""}
-									</Badge>
-								) : null}
-							</div>
-						</CardHeader>
-
-						<CardContent className="space-y-4">
-							<Alert>
-								<AlertTitle>What you can do</AlertTitle>
-								<AlertDescription>
-									Reload this page, or return to shipment lookup and try again.
-								</AlertDescription>
-							</Alert>
-
-							<div className="flex flex-col sm:flex-row gap-3">
+					<ProblemCard
+						title={title}
+						icon={<AlertTriangle className="h-5 w-5 text-destructive" aria-hidden="true" />}
+						description={message}
+						badge={
+							status ? (
+								<Badge
+									variant={isNotFound ? "outline" : "destructive"}
+									className="shrink-0"
+								>
+									{status}
+									{statusText ? ` ${statusText}` : ""}
+								</Badge>
+							) : null
+						}
+						alertTitle="What you can do"
+						alertDescription={
+							<>Reload this page, or return to shipment lookup and try again.</>
+						}
+						actions={
+							<>
 								<Button asChild>
 									<Link to="/lookup">
 										<Home className="h-4 w-4 mr-2" aria-hidden="true" />
@@ -139,29 +124,27 @@ export default function ErrorPage({ reload }: ErrorPageProps) {
 									<RotateCcw className="h-4 w-4 mr-2" aria-hidden="true" />
 									Reload page
 								</Button>
-							</div>
+							</>
+						}
+					>
+						<div className="text-xs text-muted-foreground">
+							<p>
+								Path:{" "}
+								<code className="rounded bg-muted px-1.5 py-0.5">{location.pathname}</code>
+							</p>
+						</div>
 
-							<div className="text-xs text-muted-foreground">
-								<p>
-									Path:{" "}
-									<code className="rounded bg-muted px-1.5 py-0.5">
-										{location.pathname}
-									</code>
-								</p>
-							</div>
-
-							{import.meta.env.DEV ? (
-								<details className="rounded-lg border bg-card p-4">
-									<summary className="cursor-pointer text-sm font-medium">
-										Technical details (dev)
-									</summary>
-									<pre className="mt-3 whitespace-pre-wrap break-words text-xs text-muted-foreground">
-										{debugString(error)}
-									</pre>
-								</details>
-							) : null}
-						</CardContent>
-					</Card>
+						{import.meta.env.DEV ? (
+							<details className="rounded-lg border bg-card p-4">
+								<summary className="cursor-pointer text-sm font-medium">
+									Technical details (dev)
+								</summary>
+								<pre className="mt-3 whitespace-pre-wrap break-words text-xs text-muted-foreground">
+									{debugString(error)}
+								</pre>
+							</details>
+						) : null}
+					</ProblemCard>
 
 					<p className="mt-6 text-center text-xs text-muted-foreground">
 						If this keeps happening, please check your connection and try again
