@@ -10,8 +10,9 @@
 		"typecheck": "tsc --noEmit",
 		"test": "vitest --environment jsdom",
 		"test:watch": "vitest --watch --environment jsdom",
-		"test:e2e": "playwright test",
-		"test:e2e:ui": "playwright test --ui",
+		"test:e2e": "playwright test --project=chromium",
+		"test:e2e:all": "playwright test",
+		"test:e2e:ui": "playwright test --project=chromium --ui",
 		"lint": "biome check .",
 		"lint:fix": "biome check --write .",
 		"format": "biome format --write ."
