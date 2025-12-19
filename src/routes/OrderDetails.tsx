@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { Link, useLocation, useParams, useSearchParams } from "react-router-dom";
+import { Link, useLocation, useParams } from "react-router-dom";
 import { OrderHeader } from "@/components/OrderHeader";
 import { StatusBanner } from "@/components/StatusBanner";
 import { Timeline } from "@/components/Timeline";
@@ -48,16 +48,12 @@ function mergeOrders(preferred: Order[], fetched: Order[]): Order[] {
 
 export default function OrderDetails() {
 	const { id } = useParams();
-	const [searchParams] = useSearchParams();
 	const location = useLocation();
-	const locationState = location.state as { order?: Order; orders?: Order[]; hasZip?: boolean } | null;
+	const locationState = location.state as { order?: Order; orders?: Order[]; zip?: string } | null;
 	const [orders, setOrders] = useState<Order[]>(
 		locationState?.orders ?? (locationState?.order ? [locationState.order] : [])
 	);
-	const urlZip = searchParams.get("zip")?.trim() ?? "";
-	const [hasZip, setHasZip] = useState<boolean>(
-		locationState?.hasZip ?? urlZip.length > 0
-	);
+	const [hasZip, setHasZip] = useState<boolean>((locationState?.zip?.trim() ?? "").length > 0);
 	const [error, setError] = useState<string | null>(null);
 	
 	// Use first order for shared info (delivery_info is the same across all shipments)
@@ -69,10 +65,18 @@ export default function OrderDetails() {
 			if (!id) return;
 
 			// If we navigated here with the full orders list, don't refetch.
-			if (locationState?.orders && locationState.orders.length > 0) return;
+			if (locationState?.orders && locationState.orders.length > 0) {
+				// Update hasZip from locationState zip
+				setHasZip((locationState.zip?.trim() ?? "").length > 0);
+				return;
+			}
 
-			// Get ZIP from URL query parameter
-			const zip = searchParams.get("zip")?.trim() ?? "";
+			// Get ZIP from sessionStorage (for reloads) or locationState
+			const storedZip = sessionStorage.getItem(`zip:${id}`)?.trim() ?? locationState?.zip?.trim() ?? "";
+			const zip = storedZip;
+			setHasZip(zip.length > 0);
+
+			// Fetch order data using ZIP from sessionStorage or locationState
 			const url =
 				zip.length > 0
 					? `/orders/${encodeURIComponent(id)}?zip=${encodeURIComponent(zip)}`
@@ -88,11 +92,25 @@ export default function OrderDetails() {
 				return;
 			}
 			setError(null);
-			setOrders((prev) => (prev.length > 0 ? mergeOrders(prev, data) : data));
-			setHasZip(zip.length > 0);
+			
+			// When fetching after reload (no locationState), replace entirely
+			// When we have previous orders, check if ZIP access changed
+			const previousZip = locationState?.zip?.trim() ?? "";
+			const hadZipBefore = previousZip.length > 0;
+			const hasZipNow = zip.length > 0;
+			const zipAccessChanged = hadZipBefore !== hasZipNow || (hadZipBefore && previousZip !== zip);
+			
+			// If no locationState (reload) or ZIP access changed, replace entirely
+			// This prevents sensitive data from persisting when ZIP is removed
+			if (!locationState || zipAccessChanged) {
+				setOrders(data);
+			} else {
+				// ZIP access unchanged and we have locationState - safe to merge
+				setOrders((prev) => (prev.length > 0 ? mergeOrders(prev, data) : data));
+			}
 		}
 		void fetchOrder();
-	}, [id, locationState, searchParams]);
+	}, [id, locationState]);
 
 	if (error) {
 		return (
