@@ -48,11 +48,19 @@ export default function Lookup() {
 				return;
 			}
 			const orderNo = primaryOrder.delivery_info?.orderNo ?? orderNumber;
-			// Include ZIP in URL for proper reload support and shareability
-			const orderUrl = hasZip
-				? `/order/${encodeURIComponent(orderNo)}?zip=${encodeURIComponent(trimmedZip)}`
-				: `/order/${encodeURIComponent(orderNo)}`;
-			navigate(orderUrl, { state: { orders, order: primaryOrder, hasZip } });
+			// Persist ZIP in sessionStorage for reloads and pass in locationState
+			if (hasZip) {
+				sessionStorage.setItem(`zip:${orderNo}`, trimmedZip);
+			} else {
+				sessionStorage.removeItem(`zip:${orderNo}`);
+			}
+			navigate(`/order/${encodeURIComponent(orderNo)}`, {
+				state: {
+					orders,
+					order: primaryOrder,
+					zip: hasZip ? trimmedZip : undefined,
+				},
+			});
 		} catch (_err) {
 			setError("Network error. Please try again.");
 		} finally {
