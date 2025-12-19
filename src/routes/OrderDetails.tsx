@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { Link, useLocation, useParams } from "react-router-dom";
+import { Link, useLocation, useParams, useSearchParams } from "react-router-dom";
 import { OrderHeader } from "@/components/OrderHeader";
 import { StatusBanner } from "@/components/StatusBanner";
 import { Timeline } from "@/components/Timeline";
@@ -48,12 +48,16 @@ function mergeOrders(preferred: Order[], fetched: Order[]): Order[] {
 
 export default function OrderDetails() {
 	const { id } = useParams();
+	const [searchParams] = useSearchParams();
 	const location = useLocation();
 	const locationState = location.state as { order?: Order; orders?: Order[]; hasZip?: boolean } | null;
 	const [orders, setOrders] = useState<Order[]>(
 		locationState?.orders ?? (locationState?.order ? [locationState.order] : [])
 	);
-	const [hasZip, setHasZip] = useState<boolean>(locationState?.hasZip ?? false);
+	const urlZip = searchParams.get("zip")?.trim() ?? "";
+	const [hasZip, setHasZip] = useState<boolean>(
+		locationState?.hasZip ?? urlZip.length > 0
+	);
 	const [error, setError] = useState<string | null>(null);
 	
 	// Use first order for shared info (delivery_info is the same across all shipments)
@@ -67,12 +71,11 @@ export default function OrderDetails() {
 			// If we navigated here with the full orders list, don't refetch.
 			if (locationState?.orders && locationState.orders.length > 0) return;
 
-			// If we only had a single order in history state (common after reload),
-			// refetch the full list for this order number.
-			const storedZip = sessionStorage.getItem(`zip:${id}`)?.trim() ?? "";
+			// Get ZIP from URL query parameter
+			const zip = searchParams.get("zip")?.trim() ?? "";
 			const url =
-				storedZip.length > 0
-					? `/orders/${encodeURIComponent(id)}?zip=${encodeURIComponent(storedZip)}`
+				zip.length > 0
+					? `/orders/${encodeURIComponent(id)}?zip=${encodeURIComponent(zip)}`
 					: `/orders/${encodeURIComponent(id)}`;
 			const res = await fetch(url);
 			if (!res.ok) {
@@ -86,10 +89,10 @@ export default function OrderDetails() {
 			}
 			setError(null);
 			setOrders((prev) => (prev.length > 0 ? mergeOrders(prev, data) : data));
-			setHasZip(storedZip.length > 0);
+			setHasZip(zip.length > 0);
 		}
 		void fetchOrder();
-	}, [id, locationState]);
+	}, [id, locationState, searchParams]);
 
 	if (error) {
 		return (
